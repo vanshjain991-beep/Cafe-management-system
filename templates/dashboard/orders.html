@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}All Orders — {{ cafe_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 20px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h2>📋 Order Registry</h2>
+      <p style="color:var(--text-muted); font-size:13px;">Manage and monitor all customer orders across all statuses</p>
+    </div>
+    <a href="{{ url_for('dashboard.home') }}" class="btn btn-outline">
+      ← Back to Live Kanban Board
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="card" style="margin-bottom: 24px; padding: 18px 20px;">
+    <form method="GET" action="{{ url_for('dashboard.orders_list') }}" style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex:1; min-width:180px;">
+        <label class="form-label">Filter by Status</label>
+        <select name="status" class="form-select">
+          <option value="">All Statuses</option>
+          <option value="new" {% if selected_status == 'new' %}selected{% endif %}>New</option>
+          <option value="accepted" {% if selected_status == 'accepted' %}selected{% endif %}>Accepted</option>
+          <option value="preparing" {% if selected_status == 'preparing' %}selected{% endif %}>Preparing</option>
+          <option value="ready" {% if selected_status == 'ready' %}selected{% endif %}>Ready</option>
+          <option value="served" {% if selected_status == 'served' %}selected{% endif %}>Served</option>
+          <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
+          <option value="cancelled" {% if selected_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+
+      <div style="flex:1; min-width:180px;">
+        <label class="form-label">Filter by Table</label>
+        <select name="table" class="form-select">
+          <option value="">All Tables</option>
+          {% for t in tables %}
+            <option value="{{ t.table_number }}" {% if selected_table == t.table_number|string %}selected{% endif %}>
+              Table {{ t.table_number }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <button type="submit" class="btn btn-primary" style="padding:11px 20px;">Apply Filters</button>
+        <a href="{{ url_for('dashboard.orders_list') }}" class="btn btn-outline" style="padding:11px 16px;">Reset</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Table</th>
+          <th>Customer</th>
+          <th>Items Summary</th>
+          <th>Total Bill</th>
+          <th>Status</th>
+          <th>Payment</th>
+          <th>Time</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+          <tr>
+            <td><strong>{{ o.order_number }}</strong></td>
+            <td><span class="badge badge-gold">Table {{ o.table.table_number if o.table else '?' }}</span></td>
+            <td>{{ o.customer_name }}</td>
+            <td style="font-size:12px; max-width:240px;">
+              {% for it in o.items %}
+                <span>{{ it.quantity }}x {{ it.item_name }}{% if not loop.last %}, {% endif %}</span>
+              {% endfor %}
+            </td>
+            <td><strong style="color:var(--gold);">₹{{ "%.2f"|format(o.total) }}</strong></td>
+            <td>
+              <span class="status-badge status-{{ o.status }}">{{ o.status|upper }}</span>
+            </td>
+            <td>
+              {% if o.payment_status == 'paid' %}
+                <span class="badge" style="background:rgba(34,197,94,0.15); color:#86efac; border:1px solid #22c55e;">PAID</span>
+              {% else %}
+                <span class="badge" style="background:rgba(245,158,11,0.15); color:#fde68a; border:1px solid #f59e0b;">PENDING</span>
+              {% endif %}
+            </td>
+            <td style="font-size:12px; color:var(--text-muted);">{{ o.formatted_time }}</td>
+            <td>
+              <a href="{{ url_for('dashboard.order_detail', order_id=o.id) }}" class="btn btn-sm btn-outline">
+                View & Bill
+              </a>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="9" style="text-align:center; padding:30px; color:var(--text-muted);">
+              No orders matched your selected filters.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

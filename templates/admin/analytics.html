@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics & Business Intelligence — {{ cafe_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 24px;">
+  
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h2>📈 Cafe Analytics & Performance Reports</h2>
+      <p style="color:var(--text-muted); font-size:13px;">Executive summary of sales, staff productivity, and customer demand</p>
+    </div>
+    <a href="{{ url_for('admin.order_history') }}" class="btn btn-outline">
+      🔍 Full Order History & Logs
+    </a>
+  </div>
+
+  <!-- 1. Executive Summary Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h4>Total Revenue</h4>
+        <div class="kpi-value" style="color:var(--gold);">₹{{ "%.2f"|format(total_revenue) }}</div>
+      </div>
+      <div class="kpi-icon">💰</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h4>Total Orders</h4>
+        <div class="kpi-value">{{ total_orders }}</div>
+      </div>
+      <div class="kpi-icon">📦</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h4>Completed / Settled</h4>
+        <div class="kpi-value" style="color:#4ade80;">{{ completed_orders_count }}</div>
+      </div>
+      <div class="kpi-icon">✅</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h4>Avg Order Value</h4>
+        <div class="kpi-value" style="color:var(--gold-light);">₹{{ "%.2f"|format(avg_order_value) }}</div>
+      </div>
+      <div class="kpi-icon">📊</div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:24px; margin-bottom:30px;">
+    
+    <!-- 2. Daily Sales Trend (Last 7 Days) -->
+    <div class="card">
+      <h3 style="font-size:18px; color:var(--gold-light); margin-bottom:6px;">Daily Revenue Trend (Last 7 Days)</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Daily gross settled sales in Rupees</p>
+
+      {% set max_rev = daily_revenue|max if daily_revenue|max > 0 else 1 %}
+      <div class="bar-chart-container">
+        {% for idx in range(days_labels|length) %}
+          {% set rev = daily_revenue[idx] %}
+          {% set height_pct = (rev / max_rev * 100) if max_rev > 0 else 5 %}
+          <div class="bar-column">
+            <div class="bar-fill" style="height: {{ height_pct if height_pct > 6 else 6 }}%;">
+              <span class="bar-tooltip">₹{{ rev }}</span>
+            </div>
+            <span class="bar-label">{{ days_labels[idx] }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 3. Category-Wise Sales Breakdown -->
+    <div class="card">
+      <h3 style="font-size:18px; color:var(--gold-light); margin-bottom:6px;">Category Sales Breakdown</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:18px;">Product demand and revenue contribution</p>
+
+      {% set total_cat_rev = total_revenue if total_revenue > 0 else 1 %}
+      <div>
+        {% for cat in category_sales %}
+          {% set share = (cat.revenue / total_cat_rev * 100) if total_cat_rev > 0 else 0 %}
+          <div style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+              <span><strong>{{ cat.icon }} {{ cat.category_name }}</strong> ({{ cat.quantity_sold }} items sold)</span>
+              <span style="color:var(--gold);">₹{{ "%.2f"|format(cat.revenue) }} ({{ "%.1f"|format(share) }}%)</span>
+            </div>
+            <div style="background:var(--bg-surface); height:8px; border-radius:4px; overflow:hidden;">
+              <div style="background:linear-gradient(90deg, var(--gold-dark), var(--gold)); width:{{ share }}%; height:100%;"></div>
+            </div>
+          </div>
+        {% else %}
+          <p style="color:var(--text-muted);">No sales data yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:40px;">
+    
+    <!-- 4. Staff Performance Productivity -->
+    <div class="card">
+      <h3 style="font-size:18px; color:var(--gold-light); margin-bottom:6px;">Staff Performance & Activity</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:18px;">Tracking orders handled and status changes made by each work card</p>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Staff Member</th>
+              <th>Card ID</th>
+              <th>Role</th>
+              <th>Orders Handled</th>
+              <th>Audit Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in staff_performance %}
+              <tr>
+                <td><strong>{{ s.name }}</strong></td>
+                <td><code style="color:var(--gold);">{{ s.work_card_id }}</code></td>
+                <td><span class="badge badge-role">{{ s.role|capitalize }}</span></td>
+                <td><strong style="color:#4ade80;">{{ s.total_handled }}</strong> ({{ s.completed_count }} completed)</td>
+                <td>{{ s.actions_logged }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. Peak Hours Distribution -->
+    <div class="card">
+      <h3 style="font-size:18px; color:var(--gold-light); margin-bottom:6px;">Peak Hours Analysis</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:18px;">Order distribution across 24 hours of the day</p>
+
+      {% set max_hourly = hourly_orders|max if hourly_orders|max > 0 else 1 %}
+      <div style="display:flex; align-items:flex-end; gap:4px; height:180px; padding-top:20px; border-bottom:1px solid var(--border-subtle);">
+        {% for hour in range(8, 23) %}
+          {% set count = hourly_orders[hour] %}
+          {% set pct = (count / max_hourly * 100) if max_hourly > 0 else 4 %}
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end;">
+            <div style="width:100%; max-width:20px; background:linear-gradient(180deg, #38bdf8 0%, #1e40af 100%); border-radius:3px 3px 0 0; height:{{ pct if pct > 6 else 6 }}%; position:relative;" title="{{ count }} orders at {{ '%02d:00'|format(hour) }}">
+              {% if count > 0 %}
+                <span style="position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:10px; color:#38bdf8; font-weight:700;">{{ count }}</span>
+              {% endif %}
+            </div>
+            <span style="font-size:9px; color:var(--text-muted); margin-top:6px;">{{ hour }}h</span>
+          </div>
+        {% endfor %}
+      </div>
+      <div style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:8px;">
+        Operating Hours: 08:00 to 22:00
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Live Operations Board — {{ cafe_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1400px; padding-top: 10px;">
+  
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <div class="dashboard-title">
+      <h2>☕ Live Orders Command Center</h2>
+      <p>Logged in as <strong>{{ current_user.name }}</strong> (Card: {{ current_user.work_card_id }}) • Role: <span class="badge badge-gold">{{ current_user.role|capitalize }}</span></p>
+    </div>
+    
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="badge" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
+        <span style="width:7px; height:7px; border-radius:50%; background:#10b981; animation:pulse 1.5s infinite;"></span>
+        Live Polling Active (6s)
+      </span>
+      <a href="{{ url_for('dashboard.orders_list') }}" class="btn btn-sm btn-outline">All Orders List</a>
+    </div>
+  </div>
+
+  <!-- Real-time KPI Metric Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h4>New Orders</h4>
+        <div class="kpi-value" id="statNewOrders" style="color:var(--status-new);">{{ new_orders|length }}</div>
+      </div>
+      <div class="kpi-icon">📝</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h4>In Kitchen</h4>
+        <div class="kpi-value" id="statPreparingOrders" style="color:var(--status-preparing);">{{ preparing_orders|length }}</div>
+      </div>
+      <div class="kpi-icon">☕</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h4>Ready to Serve</h4>
+        <div class="kpi-value" id="statReadyOrders" style="color:var(--status-ready);">{{ ready_orders|length }}</div>
+      </div>
+      <div class="kpi-icon">🛎️</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h4>Completed Today</h4>
+        <div class="kpi-value" id="statCompletedOrders" style="color:var(--status-completed);">{{ today_completed_count }}</div>
+      </div>
+      <div class="kpi-icon">✅</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h4>Today's Sales</h4>
+        <div class="kpi-value" id="statTodayRevenue" style="color:var(--gold);">₹{{ "%.2f"|format(today_revenue) }}</div>
+      </div>
+      <div class="kpi-icon">💰</div>
+    </div>
+  </div>
+
+  <!-- Live Kanban Columns -->
+  <div class="kanban-board" id="kanbanBoard">
+    
+    <!-- 1. New Orders -->
+    <div class="kanban-column">
+      <div class="column-header new-header">
+        <span>📝 New Orders</span>
+        <span class="column-count" id="count_new">{{ new_orders|length }}</span>
+      </div>
+      <div class="column-body" id="colBody_new">
+        {% for order in new_orders %}
+          <div class="order-card" id="orderCard_{{ order.id }}">
+            <div class="order-card-top">
+              <span class="order-card-table">🪑 Table {{ order.table.table_number if order.table else '?' }}</span>
+              <span class="order-card-time">{{ order.formatted_time }}</span>
+            </div>
+            <div class="order-card-customer">
+              <strong>{{ order.order_number }}</strong> • {{ order.customer_name }}
+            </div>
+            {% if order.notes %}
+              <div style="font-size:11px; color:#fde68a; margin-bottom:6px;">⚠️ {{ order.notes }}</div>
+            {% endif %}
+            <ul class="order-card-items">
+              {% for it in order.items %}
+                <li>
+                  <span><span class="item-qty">{{ it.quantity }}x</span> {{ it.item_name }}</span>
+                  <span>₹{{ "%.2f"|format(it.line_total) }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+            <div class="order-card-footer">
+              <span class="order-total-price">₹{{ "%.2f"|format(order.total) }}</span>
+              <div class="order-actions">
+                <button class="btn btn-sm btn-primary" onclick="quickUpdateStatus({{ order.id }}, 'accepted')">✓ Accept</button>
+                <a href="{{ url_for('dashboard.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline">Detail</a>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div style="text-align:center; padding:20px; font-size:12px; color:var(--text-muted);">No new orders</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 2. Accepted Orders -->
+    <div class="kanban-column">
+      <div class="column-header accepted-header">
+        <span>👍 Accepted</span>
+        <span class="column-count" id="count_accepted">{{ accepted_orders|length }}</span>
+      </div>
+      <div class="column-body" id="colBody_accepted">
+        {% for order in accepted_orders %}
+          <div class="order-card" id="orderCard_{{ order.id }}">
+            <div class="order-card-top">
+              <span class="order-card-table">🪑 Table {{ order.table.table_number if order.table else '?' }}</span>
+              <span class="order-card-time">{{ order.formatted_time }}</span>
+            </div>
+            <div class="order-card-customer">
+              <strong>{{ order.order_number }}</strong> • {{ order.customer_name }}
+            </div>
+            <ul class="order-card-items">
+              {% for it in order.items %}
+                <li>
+                  <span><span class="item-qty">{{ it.quantity }}x</span> {{ it.item_name }}</span>
+                  <span>₹{{ "%.2f"|format(it.line_total) }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+            <div class="order-card-footer">
+              <span class="order-total-price">₹{{ "%.2f"|format(order.total) }}</span>
+              <div class="order-actions">
+                <button class="btn btn-sm btn-primary" onclick="quickUpdateStatus({{ order.id }}, 'preparing')">☕ Prepare</button>
+                <a href="{{ url_for('dashboard.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline">Detail</a>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div style="text-align:center; padding:20px; font-size:12px; color:var(--text-muted);">No accepted orders</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 3. Preparing in Kitchen -->
+    <div class="kanban-column">
+      <div class="column-header preparing-header">
+        <span>☕ Kitchen Prep</span>
+        <span class="column-count" id="count_preparing">{{ preparing_orders|length }}</span>
+      </div>
+      <div class="column-body" id="colBody_preparing">
+        {% for order in preparing_orders %}
+          <div class="order-card" id="orderCard_{{ order.id }}">
+            <div class="order-card-top">
+              <span class="order-card-table">🪑 Table {{ order.table.table_number if order.table else '?' }}</span>
+              <span class="order-card-time">{{ order.formatted_time }}</span>
+            </div>
+            <div class="order-card-customer">
+              <strong>{{ order.order_number }}</strong> • {{ order.customer_name }}
+            </div>
+            <ul class="order-card-items">
+              {% for it in order.items %}
+                <li>
+                  <span><span class="item-qty">{{ it.quantity }}x</span> {{ it.item_name }}</span>
+                  <span>₹{{ "%.2f"|format(it.line_total) }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+            <div class="order-card-footer">
+              <span class="order-total-price">₹{{ "%.2f"|format(order.total) }}</span>
+              <div class="order-actions">
+                <button class="btn btn-sm btn-success" onclick="quickUpdateStatus({{ order.id }}, 'ready')">🛎️ Ready</button>
+                <a href="{{ url_for('dashboard.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline">Detail</a>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div style="text-align:center; padding:20px; font-size:12px; color:var(--text-muted);">No orders in kitchen</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 4. Ready to Serve -->
+    <div class="kanban-column">
+      <div class="column-header ready-header">
+        <span>🛎️ Ready to Serve</span>
+        <span class="column-count" id="count_ready">{{ ready_orders|length }}</span>
+      </div>
+      <div class="column-body" id="colBody_ready">
+        {% for order in ready_orders %}
+          <div class="order-card" id="orderCard_{{ order.id }}">
+            <div class="order-card-top">
+              <span class="order-card-table">🪑 Table {{ order.table.table_number if order.table else '?' }}</span>
+              <span class="order-card-time">{{ order.formatted_time }}</span>
+            </div>
+            <div class="order-card-customer">
+              <strong>{{ order.order_number }}</strong> • {{ order.customer_name }}
+            </div>
+            <ul class="order-card-items">
+              {% for it in order.items %}
+                <li>
+                  <span><span class="item-qty">{{ it.quantity }}x</span> {{ it.item_name }}</span>
+                  <span>₹{{ "%.2f"|format(it.line_total) }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+            <div class="order-card-footer">
+              <span class="order-total-price">₹{{ "%.2f"|format(order.total) }}</span>
+              <div class="order-actions">
+                <button class="btn btn-sm btn-primary" onclick="quickUpdateStatus({{ order.id }}, 'served')">🍽️ Serve</button>
+                <a href="{{ url_for('dashboard.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline">Detail</a>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div style="text-align:center; padding:20px; font-size:12px; color:var(--text-muted);">No orders ready</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 5. Served at Table -->
+    <div class="kanban-column">
+      <div class="column-header served-header">
+        <span>🍽️ Served</span>
+        <span class="column-count" id="count_served">{{ served_orders|length }}</span>
+      </div>
+      <div class="column-body" id="colBody_served">
+        {% for order in served_orders %}
+          <div class="order-card" id="orderCard_{{ order.id }}">
+            <div class="order-card-top">
+              <span class="order-card-table">🪑 Table {{ order.table.table_number if order.table else '?' }}</span>
+              <span class="order-card-time">{{ order.formatted_time }}</span>
+            </div>
+            <div class="order-card-customer">
+              <strong>{{ order.order_number }}</strong> • {{ order.customer_name }}
+            </div>
+            <ul class="order-card-items">
+              {% for it in order.items %}
+                <li>
+                  <span><span class="item-qty">{{ it.quantity }}x</span> {{ it.item_name }}</span>
+                  <span>₹{{ "%.2f"|format(it.line_total) }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+            <div class="order-card-footer">
+              <span class="order-total-price">₹{{ "%.2f"|format(order.total) }}</span>
+              <div class="order-actions">
+                <button class="btn btn-sm btn-success" onclick="quickUpdateStatus({{ order.id }}, 'completed', true)">💰 Settle Bill</button>
+                <a href="{{ url_for('dashboard.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline">Detail</a>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div style="text-align:center; padding:20px; font-size:12px; color:var(--text-muted);">No served orders</div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

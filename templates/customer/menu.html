@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Menu — {{ cafe_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="menu-hero">
+  <div class="container">
+    {% if selected_table %}
+      <div class="table-tag">
+        <span class="table-tag-pulse"></span>
+        <span>Ordering for <strong>Table {{ selected_table.table_number }}</strong></span>
+      </div>
+    {% else %}
+      <div class="table-tag" style="border-style:dashed;">
+        <span>Select your table below or scan your table's QR Code</span>
+      </div>
+    {% endif %}
+
+    <h1 class="menu-title">Artisan Coffee & Gourmet Delights</h1>
+    <p class="menu-subtitle">Explore our handcrafted beverages, fresh savories, and decadent desserts</p>
+
+    {% if not selected_table %}
+      <div style="margin-top:14px;">
+        <label for="tableQuickSelect" style="font-size:12px; color:var(--text-muted); margin-right:8px;">Dining at table:</label>
+        <select id="tableQuickSelect" class="form-select" style="display:inline-block; width:auto; padding:6px 12px; font-size:13px;" onchange="window.location.href='/menu?table=' + this.value">
+          <option value="">-- Choose Table --</option>
+          {% for t in active_tables %}
+            <option value="{{ t.table_number }}">Table {{ t.table_number }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Category Navigation Bar (Sticky) -->
+<div class="category-nav-wrapper">
+  <div class="container">
+    <div class="category-nav">
+      <button class="category-pill active" onclick="filterCategory('all', this)">
+        ✨ All Items
+      </button>
+      {% for cat in categories %}
+        <button class="category-pill" onclick="filterCategory('{{ cat.id }}', this)">
+          {{ cat.icon }} {{ cat.name }}
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Search input -->
+  <div class="search-wrapper">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" placeholder="Search coffee, tea, wraps, desserts..." onkeyup="handleSearch(this.value)">
+  </div>
+
+  <!-- Menu Item Cards Grid -->
+  <div class="menu-grid" id="menuGrid">
+    {% for item in menu_items %}
+      <div class="menu-card" data-category-id="{{ item.category_id }}" data-name="{{ item.name }}" data-desc="{{ item.description }}">
+        <div>
+          <div class="menu-card-header">
+            <h3 class="menu-item-name">{{ item.name }}</h3>
+            <span class="menu-item-price">{{ currency }}{{ "%.2f"|format(item.price) }}</span>
+          </div>
+          <p class="menu-item-desc">{{ item.description }}</p>
+        </div>
+
+        <div class="menu-card-footer">
+          <span style="font-size:11px; color:var(--gold); text-transform:uppercase; font-weight:700;">
+            {{ item.category.name if item.category else 'Cafe' }}
+          </span>
+
+          <!-- Add to Cart or Counter button -->
+          <div>
+            <button class="btn btn-sm btn-outline" id="addBtn_{{ item.id }}" onclick="addToCart({{ item.id }}, '{{ item.name }}', {{ item.price }})">
+              + Add to Cart
+            </button>
+            <div class="item-qty-control" id="counterGroup_{{ item.id }}" style="display:none;">
+              <button class="qty-btn" onclick="removeFromCart({{ item.id }})">-</button>
+              <span class="qty-display" id="qtyDisplay_{{ item.id }}">0</span>
+              <button class="qty-btn" onclick="addToCart({{ item.id }}, '{{ item.name }}', {{ item.price }})">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Floating Cart Action Button -->
+<a href="{{ url_for('customer.cart', table=selected_table.table_number if selected_table else '') }}" class="cart-floating-btn" id="cartFloatingBtn" style="display:none;">
+  <span>🛒 View Cart</span>
+  <span class="cart-badge-count">0</span>
+</a>
+{% endblock %}

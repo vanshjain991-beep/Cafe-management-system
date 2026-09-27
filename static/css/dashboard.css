@@ -1,0 +1,320 @@
+/* Staff & Admin Dashboard Styles */
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dashboard-title h2 {
+  font-size: 26px;
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-title p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* KPI Summary Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: var(--transition);
+}
+
+.kpi-card:hover {
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+}
+
+.kpi-info h4 {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.kpi-info .kpi-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--gold-light);
+  line-height: 1;
+}
+
+.kpi-icon {
+  font-size: 32px;
+  opacity: 0.85;
+}
+
+/* Kanban Board Layout */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 40px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+}
+
+.kanban-column {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 280px);
+}
+
+.column-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.column-header.new-header { color: var(--status-new); border-top: 3px solid var(--status-new); }
+.column-header.accepted-header { color: var(--status-accepted); border-top: 3px solid var(--status-accepted); }
+.column-header.preparing-header { color: var(--status-preparing); border-top: 3px solid var(--status-preparing); }
+.column-header.ready-header { color: var(--status-ready); border-top: 3px solid var(--status-ready); }
+.column-header.served-header { color: var(--status-served); border-top: 3px solid var(--status-served); }
+
+.column-count {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+}
+
+.column-body {
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+}
+
+/* Order Card on Board */
+.order-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.order-card:hover {
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.order-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.order-card-table {
+  font-weight: 800;
+  color: var(--gold-light);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.order-card-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.order-card-customer {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.order-card-items {
+  list-style: none;
+  border-top: 1px dashed rgba(255, 255, 255, 0.07);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+  padding: 8px 0;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.order-card-items li {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  padding: 2px 0;
+}
+
+.order-card-items .item-qty {
+  color: var(--gold);
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.order-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.order-total-price {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+/* Action forms on cards */
+.order-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Printable Bill / Receipt Styles */
+.receipt-wrapper {
+  max-width: 480px;
+  margin: 30px auto;
+  background: #ffffff;
+  color: #1a1a2e;
+  padding: 30px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.receipt-header {
+  text-align: center;
+  border-bottom: 2px dashed #333;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.receipt-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin: 6px 0;
+}
+
+.receipt-divider {
+  border-top: 1px dashed #777;
+  margin: 12px 0;
+}
+
+.receipt-total {
+  font-size: 17px;
+  font-weight: bold;
+  border-top: 2px dashed #333;
+  border-bottom: 2px dashed #333;
+  padding: 10px 0;
+  margin: 12px 0;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .navbar, .btn-no-print, footer, .alert-container {
+    display: none !important;
+  }
+  .receipt-wrapper {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+}
+
+/* Bar Chart Mockup (Pure CSS) */
+.bar-chart-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 200px;
+  padding-top: 20px;
+  border-bottom: 2px solid var(--border-subtle);
+  margin: 20px 0;
+}
+
+.bar-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.bar-fill {
+  width: 100%;
+  max-width: 38px;
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dark) 100%);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.6s ease;
+  position: relative;
+}
+
+.bar-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  text-align: center;
+}
+
+.bar-tooltip {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold-light);
+  white-space: nowrap;
+}

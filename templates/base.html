@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ cafe_name }}{% endblock %} — Smart Cafe Management</title>
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="{{ url_for('customer.menu') }}" class="brand">
+        <span class="brand-icon">☕</span>
+        <div class="brand-name">COFFEE <span>&</span> LOVE</div>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="{{ url_for('customer.menu') }}" class="nav-link">🍽️ Menu</a></li>
+          <li><a href="{{ url_for('customer.cart') }}" class="nav-link">🛒 Cart <span class="badge badge-gold cart-badge-count">0</span></a></li>
+          
+          {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('dashboard.home') }}" class="nav-link">📊 Live Board</a></li>
+            <li><a href="{{ url_for('dashboard.orders_list') }}" class="nav-link">📋 Orders</a></li>
+            
+            {% if current_user.is_manager %}
+              <li><a href="{{ url_for('admin.menu_manage') }}" class="nav-link">☕ Menu Editor</a></li>
+              <li><a href="{{ url_for('admin.table_manage') }}" class="nav-link">🪑 Tables & QRs</a></li>
+              <li><a href="{{ url_for('admin.analytics') }}" class="nav-link">📈 Analytics</a></li>
+            {% endif %}
+
+            {% if current_user.is_admin %}
+              <li><a href="{{ url_for('admin.staff_manage') }}" class="nav-link">👥 Staff</a></li>
+            {% endif %}
+
+            <li>
+              <span class="badge badge-role">
+                {{ current_user.name }} ({{ current_user.work_card_id }})
+              </span>
+            </li>
+            <li><a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline">Logout</a></li>
+          {% else %}
+            <li><a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline">Staff Portal</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Flash Alerts -->
+  <div class="container alert-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            <span>{{ message }}</span>
+            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:inherit; cursor:pointer; font-size:16px;">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Body Content -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p><strong>{{ cafe_name }}</strong> — {{ cafe_tagline }}</p>
+      <p style="margin-top:6px; font-size:12px;">
+        CSE B.Tech 2nd Year Mini Project Presentation (2026-27) | Presented by <strong>Sumit Tiwari (117)</strong>, <strong>Vansh Jain (128)</strong>, <strong>Vineet Singh (133)</strong> | Guided by <strong>Prof. Amit Rawat</strong>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/customer.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

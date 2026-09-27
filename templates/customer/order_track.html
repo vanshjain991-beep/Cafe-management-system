@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Tracking Order #{{ order.order_number }} — {{ cafe_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="track-container">
+    <div class="track-card">
+      
+      <!-- Big Status Hero Icon -->
+      <div class="status-hero-icon" id="liveStatusIcon">
+        {% if order.status == 'new' %}📝
+        {% elif order.status == 'accepted' %}👍
+        {% elif order.status == 'preparing' %}☕
+        {% elif order.status == 'ready' %}🛎️
+        {% elif order.status == 'served' %}🍽️
+        {% elif order.status == 'completed' %}✨
+        {% else %}ℹ️{% endif %}
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <span class="status-badge status-{{ order.status }}" id="liveStatusBadge">
+          {{ order.status|upper }}
+        </span>
+      </div>
+
+      <h2 style="font-size:26px; color:#fff; margin-bottom: 8px;">Order #{{ order.order_number }}</h2>
+      
+      <p id="liveStatusDesc" style="color:var(--text-secondary); max-width: 480px; margin: 0 auto 24px; font-size:14px;">
+        {% if order.status == 'new' %}
+          Your order has been received and is waiting for confirmation from our staff.
+        {% elif order.status == 'accepted' %}
+          Your order has been accepted! Sending details to our barista and kitchen.
+        {% elif order.status == 'preparing' %}
+          Our baristas and chefs are preparing your delicious food and coffee!
+        {% elif order.status == 'ready' %}
+          Your order is ready! Staff is bringing it over to your table.
+        {% elif order.status == 'served' %}
+          Served at your table. Enjoy your meal with COFFEE & LOVE! ☕❤️
+        {% elif order.status == 'completed' %}
+          Order completed. Thank you for visiting COFFEE & LOVE!
+        {% else %}
+          Order status updated.
+        {% endif %}
+      </p>
+
+      <!-- Visual Multi-Step Tracker -->
+      <div class="stepper">
+        <div class="stepper-progress" id="stepperProgress" style="width: {{ (current_step_index / 5) * 100 if current_step_index >= 0 else 0 }}%;"></div>
+        
+        <div class="step-item {{ 'completed' if current_step_index > 0 else ('active' if current_step_index == 0 else '') }}">
+          <div class="step-circle">1</div>
+          <span class="step-label">Placed</span>
+        </div>
+        <div class="step-item {{ 'completed' if current_step_index > 1 else ('active' if current_step_index == 1 else '') }}">
+          <div class="step-circle">2</div>
+          <span class="step-label">Accepted</span>
+        </div>
+        <div class="step-item {{ 'completed' if current_step_index > 2 else ('active' if current_step_index == 2 else '') }}">
+          <div class="step-circle">3</div>
+          <span class="step-label">Kitchen</span>
+        </div>
+        <div class="step-item {{ 'completed' if current_step_index > 3 else ('active' if current_step_index == 3 else '') }}">
+          <div class="step-circle">4</div>
+          <span class="step-label">Ready</span>
+        </div>
+        <div class="step-item {{ 'completed' if current_step_index > 4 else ('active' if current_step_index == 4 else '') }}">
+          <div class="step-circle">5</div>
+          <span class="step-label">Served</span>
+        </div>
+        <div class="step-item {{ 'completed' if current_step_index == 5 else '' }}">
+          <div class="step-circle">6</div>
+          <span class="step-label">Done</span>
+        </div>
+      </div>
+
+      <!-- Quick Info Badges -->
+      <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin: 24px 0; padding:14px; background:var(--bg-surface); border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:13px;">
+        <div>🪑 <strong>Table {{ order.table.table_number if order.table else '?' }}</strong></div>
+        <div>👤 <strong>{{ order.customer_name }}</strong></div>
+        <div>⏰ <strong>{{ order.formatted_time }}</strong></div>
+        <div>💰 <strong>Total: {{ currency }}{{ "%.2f"|format(order.total) }}</strong></div>
+      </div>
+
+      <!-- Payment Notice -->
+      <div id="paymentStatusNotice" class="counter-pay-banner" style="text-align:left; justify-content:center;">
+        {% if order.payment_status == 'paid' %}
+          <span>✅ <strong>Paid:</strong> Payment has been received at the counter. Thank you!</span>
+        {% else %}
+          <span>💵 <strong>Payment at Counter:</strong> Please settle ₹{{ "%.2f"|format(order.total) }} at the counter when you are ready.</span>
+        {% endif %}
+      </div>
+
+      <!-- Order Items Receipt Breakdown -->
+      <div style="margin-top:28px; text-align:left;">
+        <h4 style="font-size:15px; color:var(--gold-light); margin-bottom:12px; border-bottom:1px solid var(--border-subtle); padding-bottom:8px;">
+          Ordered Items
+        </h4>
+        <div style="font-size:14px;">
+          {% for item in order.items %}
+            <div style="display:flex; justify-content:space-between; padding:6px 0; color:var(--text-secondary);">
+              <span>{{ item.quantity }}x {{ item.item_name }}</span>
+              <span>{{ currency }}{{ "%.2f"|format(item.line_total) }}</span>
+            </div>
+          {% endfor %}
+          <div style="display:flex; justify-content:space-between; padding:8px 0; margin-top:6px; border-top:1px dashed rgba(255,255,255,0.1); color:var(--text-muted); font-size:13px;">
+            <span>Subtotal</span>
+            <span>{{ currency }}{{ "%.2f"|format(order.subtotal) }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:4px 0; color:var(--text-muted); font-size:13px;">
+            <span>Tax (5% GST)</span>
+            <span>{{ currency }}{{ "%.2f"|format(order.tax) }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:8px 0; font-size:16px; font-weight:800; color:var(--gold); border-top:1px solid var(--border-active);">
+            <span>Total</span>
+            <span>{{ currency }}{{ "%.2f"|format(order.total) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:32px;">
+        <a href="{{ url_for('customer.menu', table=order.table.table_number if order.table else '') }}" class="btn btn-outline">
+          + Order More Items
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Start live polling for this order
+  startOrderStatusPolling('{{ order.order_number }}');
+</script>
+{% endblock %}

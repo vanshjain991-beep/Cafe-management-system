@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Your Cart — {{ cafe_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 30px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h2>Your Order Cart</h2>
+    <a href="{{ url_for('customer.menu', table=selected_table.table_number if selected_table else '') }}" class="btn btn-sm btn-outline">
+      ← Back to Menu
+    </a>
+  </div>
+
+  <!-- Empty Cart State -->
+  <div id="cartEmptyView" style="display:none; text-align:center; padding: 60px 20px;">
+    <div style="font-size: 56px; margin-bottom: 16px;">🛒</div>
+    <h3 style="color:var(--gold-light); margin-bottom: 8px;">Your cart is currently empty</h3>
+    <p style="color:var(--text-muted); margin-bottom: 24px;">Discover our fresh coffees, appetizers, and signature desserts.</p>
+    <a href="{{ url_for('customer.menu', table=selected_table.table_number if selected_table else '') }}" class="btn btn-primary">
+      Explore Menu
+    </a>
+  </div>
+
+  <!-- Cart with Items -->
+  <div class="cart-layout" id="cartLayout">
+    <!-- Left Column: Items & Details -->
+    <div>
+      <div class="cart-items-card">
+        <h3 style="font-size:18px; margin-bottom:16px; color:var(--gold-light);">Selected Items</h3>
+        <div id="cartItemsContainer">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <div style="margin-top:24px;">
+          <div class="form-group">
+            <label class="form-label">Table Number <span style="color:#f87171;">*</span></label>
+            {% if selected_table %}
+              <input type="text" class="form-control" id="orderTableNumber" value="{{ selected_table.table_number }}" readonly style="background:rgba(212,165,116,0.1); font-weight:700; color:var(--gold-light);">
+              <small style="color:var(--text-muted);">Detected from scanned table QR code</small>
+            {% else %}
+              <select class="form-select" id="orderTableNumber" required>
+                <option value="">-- Choose Your Table Number --</option>
+                {% for t in active_tables %}
+                  <option value="{{ t.table_number }}">Table {{ t.table_number }}</option>
+                {% endfor %}
+              </select>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Your Name (Optional)</label>
+            <input type="text" class="form-control" id="orderCustomerName" placeholder="e.g. Vansh or Table Guest">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Special Cooking Instructions / Preferences</label>
+            <textarea class="form-control" id="orderNotes" rows="2" placeholder="e.g., Less sugar, extra hot milk, no onions..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Bill Summary & Checkout -->
+    <div>
+      <div class="bill-summary-card">
+        <h3 style="font-size:18px; margin-bottom:16px; color:var(--gold-light);">Order Summary</h3>
+        
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="billSubtotal">₹0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>GST Tax ({{ tax_rate_percent }}%)</span>
+          <span id="billTax">₹0.00</span>
+        </div>
+        <div class="summary-row total-row">
+          <span>Total Bill</span>
+          <span id="billTotal">₹0.00</span>
+        </div>
+
+        <!-- Payment Notice -->
+        <div class="counter-pay-banner">
+          <span style="font-size:20px;">💵</span>
+          <div>
+            <strong>Pay at Counter:</strong>
+            <div>You can pay via UPI QR or Cash directly at the cafe counter.</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btnSubmitOrder" onclick="submitOrder(event)" style="width:100%; padding:14px; font-size:16px; margin-top:10px;">
+          Confirm & Place Order ☕
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
