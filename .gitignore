@@ -24,3 +24,7 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# Cloudflare tunnel & local binaries
+cloudflared.exe
+live_url.txt
