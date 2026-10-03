@@ -1,29 +1,16 @@
 # ☕ COFFEE & LOVE — Smart Cafe Management System
 
-> **B.Tech CSE (B) 2nd Year Mini Project Presentation** (Session 2026-27)  
-> **Presented by:** Sumit Tiwari (117), Vansh Jain (128), Vineet Singh (133)  
-> **Guide:** Prof. Amit Rawat  
-
----
-
+> **B.Tech CSE (B) 2nd Year Mini Project Presentation** (Session 2026-27)
 ## 🌟 Overview
-
 **COFFEE & LOVE** is a full-stack, QR-code powered web application built for modern cafes and lounges. It streamlines cafe operations by eliminating paper menus, manual billing calculations, and order miscommunication. 
-
 Customers scan a table-specific QR code on their phone to access the live digital menu, customize orders, and track progress from the kitchen to their table in real-time. Meanwhile, cafe staff and managers use a role-based operations dashboard with live Kanban order tracking, audit trails, and business analytics.
-
----
-
 ## 🚀 Key Features
-
 1. **📱 Table-Specific QR Code Ordering**
    - Each dining table has a unique, branded QR code.
    - Scanning automatically identifies the table number on the customer's phone without requiring account sign-up.
-
 2. **☕ Live Digital Menu with Instant Search & Filtering**
    - Handcrafted categories: Hot Beverages, Cold Beverages, Snacks & Savories, Desserts.
    - Real-time client-side search across item names and descriptions.
-
 3. **🛒 Cart & Order Management**
    - Interactive item quantity increment/decrement controls.
    - Special cooking instructions & preferences input (e.g., "Less sugar", "Extra hot").
